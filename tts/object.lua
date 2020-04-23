@@ -6,6 +6,9 @@ version = "1.5"
 
 nextModelTarget = ""
 nextModelButton = ""
+modelPickedUp = false
+modelData = {}
+modelWidths = {}
 descriptorMapping = {}
 code = ""
 rosterMapping = {}
@@ -86,19 +89,28 @@ end
 
 function onObjectPickUp(colorName, obj)
   if nextModelTarget ~= "" then
+    modelPickedUp = true
     obj.highlightOn({1, 0, 1}, 5)
-    self.UI.setAttribute(nextModelButton, "colors", ACTIVATED_BUTTON)
     local bounds = obj.getBoundsNormalized()
     local width = math.max(bounds.size.x, bounds.size.z) * 1.2
     local copy = JSON.decode(obj.getJSON())
     copy.Nickname = nextModelTarget
     copy.States = nil
     copy.Width = width
+    table.insert(modelData, copy)
+    table.insert(modelWidths, width)
+  end
+end
+
+function onUpdate()
+  if modelPickedUp then
+    self.UI.setAttribute(nextModelButton, "colors", ACTIVATED_BUTTON)
+
     local data = {
       name = nextModelTarget,
       descriptor = descriptorMapping[nextModelTarget],
-      json = copy,
-      width = width
+      json = modelData,
+      width = modelWidths
     }
     local jsonData = JSON.encode(data)
     local this = self
@@ -115,6 +127,9 @@ function onObjectPickUp(colorName, obj)
     )
     nextModelTarget = ""
     nextModelButton = ""
+    modelPickedUp = false
+    modelData = {}
+    modelWidths = {}
   end
 end
 
